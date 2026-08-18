@@ -1,14 +1,11 @@
-﻿//using LibraryServiceReference; // Created from WSDL
-using LibraryServiceReference1; // Connected
-using System;
-using System.Threading.Tasks;
+﻿
+//using BookLibrary_WCFService; //wsdl
+using LibraryServiceReference;
 using System.ServiceModel;
-// If using Visual Studio Connected Services, add your namespace:
-// using LibraryClientApp.LibraryServiceReference; 
 
 class Program
 {
-    static async Task Main(string[] args)
+    public static async Task Main()
     {
         Console.WriteLine("Connecting to CoreWCF Service...");
 
@@ -20,14 +17,24 @@ class Program
 
         // 3. Initialize the generated client proxy
         // (Note: Name might vary slightly depending on your tool, e.g., LibraryServiceClient)
-        var client = new LibraryServiceClient();
+        var client = new LibraryServiceClient(binding, endpoint);
 
         try
         {
+            Console.WriteLine("Adding book...");
+
+            BookDataContract? newBook = new()
+            {
+                Title = "First Book",
+                IsAvailable = true
+            };
+
+            var result = await client.AddBookAsync(newBook);
+
             Console.WriteLine("Fetching book details...");
 
             // 4. Invoke the async endpoint smoothly
-            var book = await client.GetBookByIdAsync(3);
+            var book = await client.GetBookByIdAsync(1);
 
             Console.WriteLine($"\nSuccess! Book Found:");
             Console.WriteLine($"ID: {book.Id}");
@@ -60,15 +67,11 @@ class Program
             Console.WriteLine("Deleting book");
             var deleteResult = await client.RemoveBookAsync(id);
             var getBook = await client.GetBookByIdAsync(id);
-
-
-
-
-
         }
         // 5. Catch your custom strongly-typed CoreWCF faults
         catch (FaultException<BookFault> ex)
         {
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine($"\n[Server Business Error]: {ex.Detail.ErrorMessage}");
             Console.WriteLine($"[Fault Reason]: {ex.Message}");
         }
@@ -89,4 +92,8 @@ class Program
 
         Console.ReadLine();
     }
+    
+    
 }
+
+
